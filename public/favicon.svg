@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A2C7E5"/>
+      <stop offset="100%" stop-color="#D5F234"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7aaec4"/>
+      <stop offset="100%" stop-color="#a8c420"/>
+    </linearGradient>
+  </defs>
+  <!-- Shield border -->
+  <path d="M50 4 L92 19 L92 56 Q92 82 50 97 Q8 82 8 56 L8 19 Z" fill="url(#g2)"/>
+  <!-- Shield body -->
+  <path d="M50 9 L87 23 L87 56 Q87 79 50 93 Q13 79 13 56 L13 23 Z" fill="url(#g1)"/>
+  <!-- Center fold line -->
+  <line x1="50" y1="9" x2="50" y2="93" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+  <!-- Subtle inner border -->
+  <path d="M50 9 L87 23 L87 56 Q87 79 50 93 Q13 79 13 56 L13 23 Z"
+        fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+  <!-- Letter D -->
+  <text x="51" y="70"
+        font-family="Georgia, serif"
+        font-size="56"
+        font-weight="700"
+        text-anchor="middle"
+        fill="rgba(30,50,30,0.82)">D</text>
+</svg>

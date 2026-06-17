@@ -1,0 +1,56 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: rgba(255,255,255,0.25);
+  --bg-secondary: rgba(255,255,255,0.35);
+  --bg-card: rgba(255,255,255,0.55);
+  --bg-sidebar: rgba(255,255,255,0.6);
+  --accent: #418C3E;
+  --accent-hover: #336e31;
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a5568;
+  --text-muted: #6b7a8d;
+  --border: rgba(255,255,255,0.5);
+  --success: #38a169;
+  --danger: #e53e3e;
+  --warning: #d97706;
+  --info: #3182ce;
+  --sidebar-width: 240px;
+
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: linear-gradient(45deg, #A2C7E5 10%, #D5F234 90%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Glassmorphism za sve kartice */
+[class*="card"], [class*="Card"], [class*="modal"], [class*="Modal"],
+[class*="filterCard"], [class*="summaryCard"], [class*="tableCard"] {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
