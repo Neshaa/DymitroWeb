@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Loader2, AlertCircle, Trophy, Users, Star, ArrowUp, ArrowDown } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Loader2, AlertCircle, Trophy, Users, Star, ArrowUp, ArrowDown, PlusCircle, X, CheckCircle } from 'lucide-react'
 import styles from './Football.module.css'
 
 const BASE = 'https://dymitroapi.onrender.com/Football/Football'
@@ -106,6 +106,88 @@ function DataTable({ data, loading, error, emptyText, hideCols = [], renameCols 
   )
 }
 
+const emptyInsertForm = { teamId: '', teamName: '', no: '', year: 2026 }
+
+function TeamAutocomplete({ value, onSelect }) {
+  const [query, setQuery] = useState(value || '')
+  const [suggestions, setSuggestions] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+  const debounceRef = useRef(null)
+  const wrapperRef = useRef(null)
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const handleInput = (e) => {
+    const q = e.target.value
+    setQuery(q)
+    onSelect(null) // clear selection when typing
+    clearTimeout(debounceRef.current)
+    if (!q.trim()) { setSuggestions([]); setOpen(false); return }
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const res = await fetch(`https://dymitroapi.onrender.com/Football/suggestions?search=${encodeURIComponent(q)}`)
+        const data = await res.json()
+        setSuggestions(Array.isArray(data) ? data : [])
+        setOpen(true)
+      } catch { setSuggestions([]) }
+      finally { setLoading(false) }
+    }, 300)
+  }
+
+  const handlePick = (item) => {
+    const name = item.teamFormated ?? item.name ?? item.Name ?? String(item.id ?? item.Id ?? '')
+    setQuery(name)
+    setSuggestions([])
+    setOpen(false)
+    onSelect(item)
+  }
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <input
+        value={query}
+        onChange={handleInput}
+        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        placeholder="Type team name..."
+        autoComplete="off"
+      />
+      {loading && <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /></span>}
+      {open && suggestions.length > 0 && (
+        <ul style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2000,
+          background: 'white', border: '1.5px solid #c8d8e8', borderRadius: 8,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', margin: '4px 0 0', padding: 0,
+          listStyle: 'none', maxHeight: 220, overflowY: 'auto'
+        }}>
+          {suggestions.map((item, i) => (
+            <li
+              key={i}
+              onMouseDown={() => handlePick(item)}
+              style={{
+                padding: '9px 14px', cursor: 'pointer', fontSize: 13,
+                borderBottom: '1px solid #f0f0f0', fontFamily: 'Poppins, sans-serif',
+                color: '#1a1a2e'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(65,140,62,0.08)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
+            >
+              {item.teamFormated ?? item.name ?? item.Name ?? JSON.stringify(item)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function WorldCupsTab() {
   const [year, setYear] = useState(2026)
   const [statsData, setStatsData] = useState([])
@@ -114,6 +196,12 @@ function WorldCupsTab() {
   const [loadingCountry, setLoadingCountry] = useState(false)
   const [errorStats, setErrorStats] = useState(null)
   const [errorCountry, setErrorCountry] = useState(null)
+  const [showInsert, setShowInsert] = useState(false)
+  const [insertForm, setInsertForm] = useState({ ...emptyInsertForm, year })
+  const [selectedTeam, setSelectedTeam] = useState(null)
+  const [inserting, setInserting] = useState(false)
+  const [insertError, setInsertError] = useState(null)
+  const [insertSuccess, setInsertSuccess] = useState(false)
 
   const fetchAll = async (y) => {
     setLoadingStats(true)
@@ -136,6 +224,47 @@ function WorldCupsTab() {
 
   useEffect(() => { fetchAll(year) }, [year])
 
+  const openInsert = () => {
+    setInsertForm({ ...emptyInsertForm, year })
+    setSelectedTeam(null)
+    setInsertError(null)
+    setInsertSuccess(false)
+    setShowInsert(true)
+  }
+
+  const handleInsert = async (e) => {
+    e.preventDefault()
+    setInserting(true)
+    setInsertError(null)
+    try {
+      if (!selectedTeam) throw new Error('Please select a team from suggestions.')
+      const payload = {
+        team: { id: selectedTeam.id ?? selectedTeam.Id ?? null },
+        id: 0,
+        no: insertForm.no !== '' ? Number(insertForm.no) : null,
+        year: Number(insertForm.year),
+      }
+      const res = await fetch(`${BASE}/InsertWorldCupPlayer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        let msg = `Error ${res.status}`
+        try { const b = await res.json(); if (b?.title) msg = b.title; else if (b?.message) msg = b.message } catch {}
+        throw new Error(msg)
+      }
+      setInsertSuccess(true)
+      setInsertForm({ ...emptyInsertForm, year })
+      fetchAll(year)
+      setTimeout(() => { setInsertSuccess(false); setShowInsert(false) }, 2000)
+    } catch (err) {
+      setInsertError(err.message)
+    } finally {
+      setInserting(false)
+    }
+  }
+
   return (
     <div className={styles.wcTab}>
       <div className={styles.tablesRow}>
@@ -143,6 +272,9 @@ function WorldCupsTab() {
           <div className={styles.tableCardHeader}>
             <Trophy size={15} />
             <span>Teams</span>
+            <button className={styles.insertBtn} onClick={openInsert}>
+              <PlusCircle size={14} /> Add
+            </button>
           </div>
           <DataTable
             data={statsData}
@@ -183,6 +315,71 @@ function WorldCupsTab() {
           />
         </div>
       </div>
+
+      {/* Insert Modal */}
+      {showInsert && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Add World Cup Entry</h3>
+              <button className={styles.closeBtn} onClick={() => setShowInsert(false)}><X size={18} /></button>
+            </div>
+            {insertError && (
+              <div className={styles.formError}>
+                <AlertCircle size={14} /> {insertError}
+              </div>
+            )}
+            {insertSuccess && (
+              <div className={styles.formSuccess}>
+                <CheckCircle size={14} /> Saved successfully!
+              </div>
+            )}
+            <form onSubmit={handleInsert} className={styles.modalForm}>
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label>Team</label>
+                  <TeamAutocomplete
+                    value={insertForm.teamName}
+                    onSelect={item => {
+                      setSelectedTeam(item)
+                      if (item) setInsertForm(p => ({ ...p, teamName: item.name ?? item.Name ?? '' }))
+                    }}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>No</label>
+                  <input
+                    type="number"
+                    value={insertForm.no}
+                    onChange={e => setInsertForm(p => ({ ...p, no: e.target.value }))}
+                    placeholder="e.g. 23"
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Year</label>
+                  <select
+                    className={styles.yearSelect}
+                    value={insertForm.year}
+                    onChange={e => setInsertForm(p => ({ ...p, year: Number(e.target.value) }))}
+                    style={{ width: '100%', boxSizing: 'border-box' }}
+                  >
+                    {WORLD_CUP_YEARS.map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className={styles.formActions}>
+                <button type="button" className={styles.cancelBtn} onClick={() => setShowInsert(false)}>Cancel</button>
+                <button type="submit" className={styles.submitBtn} disabled={inserting}>
+                  {inserting ? <Loader2 size={15} className={styles.spin} /> : <PlusCircle size={15} />}
+                  {inserting ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
