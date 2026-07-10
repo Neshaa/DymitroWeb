@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   LayoutDashboard, LogIn, UserPlus, ChevronRight, Banknote,
-  Trophy, ChevronDown, Settings2
+  Trophy, ChevronDown, Settings2, Bike, X
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
 
@@ -29,6 +29,14 @@ const sportNav = [
       { id: 'football-players', label: 'Football Teams' },
     ],
   },
+  {
+    id: 'my-sport',
+    label: 'MySport',
+    icon: Bike,
+    children: [
+      { id: 'bicycle', label: 'Bicycle' },
+    ],
+  },
 ]
 
 const accountNav = [
@@ -36,7 +44,7 @@ const accountNav = [
   { id: 'signup', label: 'Sign up', icon: UserPlus },
 ]
 
-export default function Sidebar({ activePage, setActivePage }) {
+export default function Sidebar({ activePage, setActivePage, isOpen, onClose }) {
   const [openMenus, setOpenMenus] = useState({ 'all-time-results': true })
 
   const toggleMenu = (id) => {
@@ -44,10 +52,15 @@ export default function Sidebar({ activePage, setActivePage }) {
   }
 
   return (
-    <aside className={styles.sidebar}>
+    <>
+      {isOpen && <div className={styles.overlay} onClick={onClose} />}
+      <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
       <div className={styles.logo}>
         <img src="/favicon.svg" alt="Dymitro" style={{ width: 28, height: 28 }} />
         <span>Dymitro</span>
+        <button className={styles.closeBtn} onClick={onClose} aria-label="Close menu">
+          <X size={20} />
+        </button>
       </div>
 
       <nav className={styles.nav}>
@@ -132,6 +145,7 @@ export default function Sidebar({ activePage, setActivePage }) {
           <span className={styles.userHandle}>@imshrina</span>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }
