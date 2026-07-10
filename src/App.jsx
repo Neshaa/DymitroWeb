@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import Salary from './pages/Salary'
 import FootballPlayers from './pages/FootballPlayers'
 import Football from './pages/Football'
+import Volleyball from './pages/Volleyball'
 import './App.css'
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
       case 'salary': return <Salary />
       case 'football-players': return <FootballPlayers />
       case 'football': return <Football />
+      case 'volleyball': return <Volleyball />
       default: return <Dashboard />
     }
   }
