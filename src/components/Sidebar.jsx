@@ -19,6 +19,7 @@ const sportNav = [
       { id: 'volleyball', label: 'Volleyball' },
       { id: 'waterpolo', label: 'Waterpolo' },
       { id: 'football', label: 'Football' },
+      { id: 'nba-results', label: 'NBA Results' },
     ],
   },
   {
@@ -27,6 +28,7 @@ const sportNav = [
     icon: Settings2,
     children: [
       { id: 'football-players', label: 'Football Teams' },
+      { id: 'nba-players', label: 'NBA Players' },
     ],
   },
   {

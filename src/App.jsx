@@ -4,8 +4,10 @@ import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Salary from './pages/Salary'
 import FootballPlayers from './pages/FootballPlayers'
+import NBAPlayers from './pages/NBAPlayers'
 import Football from './pages/Football'
 import Volleyball from './pages/Volleyball'
+import NBA from './pages/NBA'
 import Bicycle from './pages/Bicycle'
 import './App.css'
 
@@ -22,8 +24,10 @@ function App() {
     switch (activePage) {
       case 'salary': return <Salary />
       case 'football-players': return <FootballPlayers />
+      case 'nba-players': return <NBAPlayers />
       case 'football': return <Football />
       case 'volleyball': return <Volleyball />
+      case 'nba-results': return <NBA />
       case 'bicycle': return <Bicycle />
       default: return <Dashboard />
     }
