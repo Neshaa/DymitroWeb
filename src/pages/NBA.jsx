@@ -37,7 +37,7 @@ function playerColorClass(row, balkanOnly) {
   return styles.activePlayer
 }
 
-function LeadersTable({ category, season, balkan, byCountry, refreshKey }) {
+function LeadersTable({ category, season, balkan, byCountry, refreshKey, highlightCountry }) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -88,8 +88,10 @@ function LeadersTable({ category, season, balkan, byCountry, refreshKey }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, i) => (
-                <tr key={i}>
+              {rows.map((row, i) => {
+                const isHighlighted = byCountry && highlightCountry && row.player?.toLowerCase() === highlightCountry.toLowerCase()
+                return (
+                <tr key={i} className={isHighlighted ? styles.highlightedRow : ''}>
                   <td className={styles.indexCell}>{row.position ?? i + 1}</td>
                   <td className={styles.moveCell}>
                     {row.move ? (
@@ -103,7 +105,8 @@ function LeadersTable({ category, season, balkan, byCountry, refreshKey }) {
                   </td>
                   <td className={styles.statCell}>{typeof row.value === 'number' ? row.value.toLocaleString('en-US') : row.value}</td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -209,7 +212,7 @@ function AddResultModal({ onClose, onSaved }) {
         try { const b = await res.json(); msg = b?.title || b?.message || msg } catch {}
         throw new Error(msg)
       }
-      onSaved()
+      onSaved(player)
       onClose()
     } catch (err) {
       setError(err.message)
@@ -295,9 +298,11 @@ export default function NBA() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [success, setSuccess] = useState(null)
+  const [highlightCountry, setHighlightCountry] = useState(null)
 
-  const handleResultSaved = () => {
+  const handleResultSaved = (player) => {
     setRefreshKey(k => k + 1)
+    setHighlightCountry(player?.country ?? null)
     setSuccess('Result added successfully!')
     setTimeout(() => setSuccess(null), 3000)
   }
@@ -358,7 +363,7 @@ export default function NBA() {
 
       <div className={styles.tablesRow}>
         {CATEGORIES.map(category => (
-          <LeadersTable key={category.key} category={category} season={season} balkan={balkanOnly} byCountry={byCountry} refreshKey={refreshKey} />
+          <LeadersTable key={category.key} category={category} season={season} balkan={balkanOnly} byCountry={byCountry} refreshKey={refreshKey} highlightCountry={highlightCountry} />
         ))}
       </div>
 

@@ -167,6 +167,13 @@
 
 .table tr:hover td { background: rgba(65, 140, 62, 0.04); }
 
+.highlightedRow td {
+  background: rgba(255, 196, 0, 0.18) !important;
+  box-shadow: inset 3px 0 0 #e6a700;
+}
+
+.highlightedRow:hover td { background: rgba(255, 196, 0, 0.26) !important; }
+
 .indexCell {
   color: var(--text-muted) !important;
   font-size: 12px !important;
