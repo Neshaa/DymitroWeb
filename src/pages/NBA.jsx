@@ -37,7 +37,7 @@ function playerColorClass(row, balkanOnly) {
   return styles.activePlayer
 }
 
-function LeadersTable({ category, season, balkan, byCountry, refreshKey, highlightCountry }) {
+function LeadersTable({ category, season, balkan, byCountry, refreshKey, highlightCountry, highlightPlayerId }) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -89,7 +89,9 @@ function LeadersTable({ category, season, balkan, byCountry, refreshKey, highlig
             </thead>
             <tbody>
               {rows.map((row, i) => {
-                const isHighlighted = byCountry && highlightCountry && row.player?.toLowerCase() === highlightCountry.toLowerCase()
+                const isHighlighted = byCountry
+                  ? (highlightCountry && row.player?.toLowerCase() === highlightCountry.toLowerCase())
+                  : (highlightPlayerId != null && row.id === highlightPlayerId)
                 return (
                 <tr key={i} className={isHighlighted ? styles.highlightedRow : ''}>
                   <td className={styles.indexCell}>{row.position ?? i + 1}</td>
@@ -299,10 +301,12 @@ export default function NBA() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [success, setSuccess] = useState(null)
   const [highlightCountry, setHighlightCountry] = useState(null)
+  const [highlightPlayerId, setHighlightPlayerId] = useState(null)
 
   const handleResultSaved = (player) => {
     setRefreshKey(k => k + 1)
     setHighlightCountry(player?.country ?? null)
+    setHighlightPlayerId(player?.id ?? null)
     setSuccess('Result added successfully!')
     setTimeout(() => setSuccess(null), 3000)
   }
@@ -363,7 +367,7 @@ export default function NBA() {
 
       <div className={styles.tablesRow}>
         {CATEGORIES.map(category => (
-          <LeadersTable key={category.key} category={category} season={season} balkan={balkanOnly} byCountry={byCountry} refreshKey={refreshKey} highlightCountry={highlightCountry} />
+          <LeadersTable key={category.key} category={category} season={season} balkan={balkanOnly} byCountry={byCountry} refreshKey={refreshKey} highlightCountry={highlightCountry} highlightPlayerId={highlightPlayerId} />
         ))}
       </div>
 
