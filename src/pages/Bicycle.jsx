@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Loader2, AlertCircle, RefreshCw, Bike, PlusCircle, X, CheckCircle } from 'lucide-react'
 import styles from './Bicycle.module.css'
 
@@ -61,6 +61,112 @@ function groupByDate(list) {
   })
 }
 
+function groupByYear(list) {
+  const groups = new Map()
+  list.forEach(a => {
+    if (!a.ddate) return
+    const d = new Date(a.ddate)
+    if (Number.isNaN(d.getTime())) return
+    const year = d.getFullYear()
+    if (!groups.has(year)) groups.set(year, { year, distance: 0, elevationGain: 0 })
+    const g = groups.get(year)
+    g.distance += Number(a.distance) || 0
+    g.elevationGain += Number(a.elevationGain) || 0
+  })
+  return [...groups.values()].sort((a, b) => a.year - b.year)
+}
+
+// Round up to a "clean" axis max (1/2/5 x 10^n) so gridline labels read as whole numbers.
+function niceMax(value) {
+  if (value <= 0) return 1
+  const exp = Math.floor(Math.log10(value))
+  const base = Math.pow(10, exp)
+  const fraction = value / base
+  const niceFraction = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10
+  return niceFraction * base
+}
+
+function YearBarChart({ title, unit, data, field, color }) {
+  const [hovered, setHovered] = useState(null)
+  const width = 520
+  const height = 200
+  const padLeft = 44
+  const padRight = 12
+  const padTop = 24
+  const padBottom = 28
+  const plotW = width - padLeft - padRight
+  const plotH = height - padTop - padBottom
+
+  const max = niceMax(Math.max(...data.map(d => d[field]), 0))
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(max * f))
+  const barSlot = data.length ? plotW / data.length : plotW
+  const barWidth = Math.min(28, barSlot * 0.55)
+
+  const formatValue = v => Math.round(v).toLocaleString('en-US')
+
+  return (
+    <div className={styles.chartCard}>
+      <div className={styles.chartHeader}>{title}</div>
+      {data.length === 0 ? (
+        <div className={styles.chartEmpty}>No data</div>
+      ) : (
+        <svg viewBox={`0 0 ${width} ${height}`} className={styles.chartSvg} role="img" aria-label={title}>
+          {ticks.map(t => {
+            const y = padTop + plotH - (max ? (t / max) * plotH : 0)
+            return (
+              <g key={t}>
+                <line x1={padLeft} y1={y} x2={width - padRight} y2={y} className={styles.chartGridline} />
+                <text x={padLeft - 8} y={y} textAnchor="end" dominantBaseline="middle" className={styles.chartAxisLabel}>
+                  {t.toLocaleString('en-US')}
+                </text>
+              </g>
+            )
+          })}
+          {data.map((d, i) => {
+            const v = d[field]
+            const barH = max ? (v / max) * plotH : 0
+            const slotX = padLeft + i * barSlot
+            const x = slotX + (barSlot - barWidth) / 2
+            const y = padTop + plotH - barH
+            const isHovered = hovered === i
+            return (
+              <g key={d.year}>
+                <rect
+                  x={slotX}
+                  y={padTop}
+                  width={barSlot}
+                  height={plotH}
+                  fill="transparent"
+                  onMouseEnter={() => setHovered(i)}
+                  onMouseLeave={() => setHovered(null)}
+                />
+                <rect
+                  x={x}
+                  y={y}
+                  width={barWidth}
+                  height={Math.max(barH, 1)}
+                  rx={4}
+                  fill={color}
+                  opacity={isHovered ? 1 : 0.85}
+                  style={{ pointerEvents: 'none', transition: 'opacity 0.15s' }}
+                />
+                {isHovered && (
+                  <text x={x + barWidth / 2} y={y - 6} textAnchor="middle" className={styles.chartValueLabel}>
+                    {formatValue(v)}{unit}
+                  </text>
+                )}
+                <text x={slotX + barSlot / 2} y={height - 8} textAnchor="middle" className={styles.chartAxisLabel}>
+                  {d.year}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
+      )}
+    </div>
+  )
+}
+
 export default function Bicycle() {
   const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(false)
@@ -90,6 +196,7 @@ export default function Bicycle() {
   useEffect(() => { fetchActivities() }, [])
 
   const sortedByDistance = groupByDate(activities).sort((a, b) => (b.distance ?? 0) - (a.distance ?? 0))
+  const yearlyData = useMemo(() => groupByYear(activities), [activities])
 
   const set = (field, val) => setForm(p => ({ ...p, [field]: val }))
 
@@ -183,6 +290,11 @@ export default function Bicycle() {
           <span>No activities found</span>
         </div>
       ) : (
+        <>
+        <div className={styles.chartsRow}>
+          <YearBarChart title="Distance by Year" unit=" km" data={yearlyData} field="distance" color="var(--accent)" />
+          <YearBarChart title="Elevation Gain by Year" unit=" m" data={yearlyData} field="elevationGain" color="#2a78d6" />
+        </div>
         <div className={styles.tableCard}>
           <div className={styles.tableHeader}>
             <span className={styles.tableCount}>
@@ -231,6 +343,7 @@ export default function Bicycle() {
             </table>
           </div>
         </div>
+        </>
       )}
 
       {showModal && (
