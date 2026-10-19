@@ -37,6 +37,7 @@ const sportNav = [
     icon: Bike,
     children: [
       { id: 'bicycle', label: 'Bicycle' },
+      { id: 'trip-planner', label: 'Trip Planner' },
     ],
   },
 ]

@@ -9,6 +9,7 @@ import Football from './pages/Football'
 import Volleyball from './pages/Volleyball'
 import NBA from './pages/NBA'
 import Bicycle from './pages/Bicycle'
+import TripPlanner from './pages/TripPlanner'
 import './App.css'
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
       case 'volleyball': return <Volleyball />
       case 'nba-results': return <NBA />
       case 'bicycle': return <Bicycle />
+      case 'trip-planner': return <TripPlanner />
       default: return <Dashboard />
     }
   }
