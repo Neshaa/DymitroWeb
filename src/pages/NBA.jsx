@@ -5,8 +5,9 @@ import styles from './NBA.module.css'
 const BASE = 'https://dymitroapi.onrender.com/NBA'
 
 const CURRENT_YEAR = 2026
+const NEWEST_SEASON = 2027
 const OLDEST_SEASON = 2015
-const SEASONS = Array.from({ length: CURRENT_YEAR - OLDEST_SEASON + 1 }, (_, i) => CURRENT_YEAR - i)
+const SEASONS = Array.from({ length: NEWEST_SEASON - OLDEST_SEASON + 1 }, (_, i) => NEWEST_SEASON - i)
 const FILTER_SEASONS = [...SEASONS, 'Previous']
 
 // { player: { id, firstName, lastName, country, active, balkan, fullName }, points, ptsPosition,
